@@ -25,13 +25,55 @@ public class Main {
             System.out.print("Введите город: ");
             final String city = scanner.nextLine();
             System.out.println("Введите нужное вам слово: ");
+            System.out.println(" погода - погода на сегодня");
             System.out.println(" один - описание");
             System.out.println(" два - температура");
             System.out.println(" три - влажность");
             System.out.println(" четыре - давление");
             System.out.println(" пять - скорость ветра\n");
             final String word = scanner.nextLine();
-            if(word.equals("один")){
+            if(word.equals("погода")){
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    try {
+                        String urlString = BASE_URL + "?q=" + city + "&appid=" + API_KEY + "&units=metric&lang=ru";
+                        URL url = new URL(urlString);
+
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+                        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        String inputLine;
+                        StringBuilder response = new StringBuilder();
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                        in.close();
+                        conn.disconnect();
+
+                        JSONObject jsonResponse = new JSONObject(response.toString());
+                        JSONObject main = jsonResponse.getJSONObject("main");
+                        JSONObject weather = jsonResponse.getJSONArray("weather").getJSONObject(0);
+                        JSONObject wind = jsonResponse.getJSONObject("wind");
+                        double temperature = main.getDouble("temp");
+                        double feels_like = main.getDouble("feels_like");
+                        String description = weather.getString("description");
+                        int humidity = main.getInt("humidity");
+                        double speed = wind.getDouble("speed");
+                        int pressure = main.getInt("pressure");
+
+                        System.out.println("Погода в " + city + "e"+ ":");
+                        System.out.println("Описание: " + description);
+                        System.out.println("Температура: " + temperature + "C");
+                        System.out.println("Ощущается как: " + feels_like + "C");
+                        System.out.println("Влажность: " + humidity + "%");
+                        System.out.println("Давление: " + pressure );
+                        System.out.println("Скорость ветра: " + speed + " м/с");
+                        System.out.println("\nДля выхода из программы напишите слово Выход");
+                    } catch (Exception e) {
+                        System.out.println("Ошибка: " + e.getMessage());
+                    }
+                });
+                future.get();
+            }else if(word.equals("один")){
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
                         String urlString = BASE_URL + "?q=" + city + "&appid=" + API_KEY + "&units=metric&lang=ru";
